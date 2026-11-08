@@ -1,0 +1,81 @@
+{
+  "name": "DEMO: Fixed webhook - activate only in isolated test environment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "portfolio-fixed-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8a4b1f0c-14b8-40ed-8a1a-010000000001",
+      "name": "Receive Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        200,
+        200
+      ],
+      "webhookId": "2a9f26e5-0000-4000-a000-222222222222"
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $input.first().json;\nconst raw = incoming && typeof incoming === 'object' && Object.hasOwn(incoming, 'body') ? incoming.body : incoming;\nconst body = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};\nconst errors = [];\nconst orderId = typeof body.orderId === 'string' ? body.orderId.trim() : '';\nconst customerEmail = typeof body.customerEmail === 'string' ? body.customerEmail.trim() : '';\nconst quantity = body.quantity;\nif (!orderId) errors.push('orderId is required');\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(customerEmail)) errors.push('customerEmail must be valid');\nif (!Number.isInteger(quantity) || quantity <= 0 || quantity > 100000) errors.push('quantity must be a positive integer no greater than 100000');\nif (errors.length) {\n  return [{ json: { ok: false, statusCode: 400, errors } }];\n}\nreturn [{ json: { ok: true, statusCode: 200, order: { orderId, customerEmail, quantity } } }];"
+      },
+      "id": "8a4b1f0c-14b8-40ed-8a1a-010000000002",
+      "name": "Validate and Normalize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "8a4b1f0c-14b8-40ed-8a1a-010000000003",
+      "name": "Return HTTP Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Receive Order": {
+      "main": [
+        [
+          {
+            "node": "Validate and Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and Normalize": {
+      "main": [
+        [
+          {
+            "node": "Return HTTP Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": []
+}

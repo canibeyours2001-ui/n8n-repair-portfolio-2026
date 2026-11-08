@@ -1,0 +1,81 @@
+{
+  "name": "DEMO: Broken webhook - do not activate",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "portfolio-broken-webhook",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "8a4b1f0c-14b8-40ed-8a1a-010000000001",
+      "name": "Receive Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        200,
+        200
+      ],
+      "webhookId": "2a9f26e5-0000-4000-a000-111111111111"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn [{ json: { ok: true, statusCode: 200, order: { orderId: data.orderId, customerEmail: data.customerEmail, quantity: data.quantity } } }];"
+      },
+      "id": "8a4b1f0c-14b8-40ed-8a1a-010000000002",
+      "name": "Broken Field Mapping",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "8a4b1f0c-14b8-40ed-8a1a-010000000003",
+      "name": "Return HTTP Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Receive Order": {
+      "main": [
+        [
+          {
+            "node": "Broken Field Mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Broken Field Mapping": {
+      "main": [
+        [
+          {
+            "node": "Return HTTP Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "pinData": {},
+  "tags": []
+}

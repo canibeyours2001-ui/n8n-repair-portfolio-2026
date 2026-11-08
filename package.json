@@ -1,0 +1,10 @@
+{
+  "name": "n8n-repair-portfolio-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "description": "Isolated n8n webhook workflow repair demonstration"
+}
